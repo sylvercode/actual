@@ -218,6 +218,9 @@ export function ImportTransactionsModal({
   const [fallbackMissingPayeeToMemo, setFallbackMissingPayeeToMemo] = useState(
     String(prefs[`ofx-fallback-missing-payee-${accountId}`]) !== 'false',
   );
+  const [swapPayeeAndMemo, setSwapPayeeAndMemo] = useState(
+    String(prefs[`ofx-swap-payee-memo-${accountId}`]) === 'true',
+  );
 
   const [parseDateFormat, setParseDateFormat] = useState<DateFormat | null>(
     null,
@@ -467,6 +470,7 @@ export function ImportTransactionsModal({
       skipEndLines,
       fallbackMissingPayeeToMemo,
       importNotes,
+      swapPayeeAndMemo,
     });
 
     parse(originalFileName, parseOptions);
@@ -478,6 +482,7 @@ export function ImportTransactionsModal({
     skipEndLines,
     fallbackMissingPayeeToMemo,
     importNotes,
+    swapPayeeAndMemo,
     parse,
   ]);
 
@@ -525,6 +530,7 @@ export function ImportTransactionsModal({
       skipEndLines,
       fallbackMissingPayeeToMemo,
       importNotes,
+      swapPayeeAndMemo,
     });
 
     parse(res[0], parseOptions);
@@ -677,6 +683,7 @@ export function ImportTransactionsModal({
         [`ofx-fallback-missing-payee-${accountId}`]: String(
           fallbackMissingPayeeToMemo,
         ),
+        [`ofx-swap-payee-memo-${accountId}`]: String(swapPayeeAndMemo),
       });
     }
 
@@ -912,15 +919,26 @@ export function ImportTransactionsModal({
           )}
 
           {isOfxFile(filetype) && (
-            <LabeledCheckbox
-              id="form_fallback_missing_payee"
-              checked={fallbackMissingPayeeToMemo}
-              onChange={() => {
-                setFallbackMissingPayeeToMemo(state => !state);
-              }}
-            >
-              <Trans>Use Memo as a fallback for empty Payees</Trans>
-            </LabeledCheckbox>
+            <>
+              <LabeledCheckbox
+                id="form_fallback_missing_payee"
+                checked={fallbackMissingPayeeToMemo}
+                onChange={() => {
+                  setFallbackMissingPayeeToMemo(state => !state);
+                }}
+              >
+                <Trans>Use Memo as a fallback for empty Payees</Trans>
+              </LabeledCheckbox>
+              <LabeledCheckbox
+                id="form_swap_payee_memo"
+                checked={swapPayeeAndMemo}
+                onChange={() => {
+                  setSwapPayeeAndMemo(state => !state);
+                }}
+              >
+                <Trans>Swap payee and memo</Trans>
+              </LabeledCheckbox>
+            </>
           )}
 
           {filetype !== 'csv' && (
@@ -1168,8 +1186,8 @@ function getParseOptions(fileType: string, options: ParseFileOptions = {}) {
     return { delimiter, hasHeaderRow, skipStartLines, skipEndLines };
   }
   if (isOfxFile(fileType)) {
-    const { fallbackMissingPayeeToMemo, importNotes } = options;
-    return { fallbackMissingPayeeToMemo, importNotes };
+    const { fallbackMissingPayeeToMemo, importNotes, swapPayeeAndMemo } = options;
+    return { fallbackMissingPayeeToMemo, importNotes, swapPayeeAndMemo };
   }
   if (isCamtFile(fileType)) {
     const { importNotes } = options;
