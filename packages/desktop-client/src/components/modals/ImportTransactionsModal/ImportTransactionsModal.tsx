@@ -221,6 +221,9 @@ export function ImportTransactionsModal({
   const [swapPayeeAndMemo, setSwapPayeeAndMemo] = useState(
     String(prefs[`ofx-swap-payee-memo-${accountId}`]) === 'true',
   );
+  const [qifSwapPayeeAndMemo, setQifSwapPayeeAndMemo] = useState(
+    String(prefs[`qif-swap-payee-memo-${accountId}`]) === 'true',
+  );
 
   const [parseDateFormat, setParseDateFormat] = useState<DateFormat | null>(
     null,
@@ -400,7 +403,6 @@ export function ImportTransactionsModal({
 
       setError(null);
 
-      /// Do fine grained reporting between the old and new OFX importers.
       if (errors.length > 0) {
         setError({
           parsed: true,
@@ -470,7 +472,8 @@ export function ImportTransactionsModal({
       skipEndLines,
       fallbackMissingPayeeToMemo,
       importNotes,
-      swapPayeeAndMemo,
+      swapPayeeAndMemo:
+        fileType === 'qif' ? qifSwapPayeeAndMemo : swapPayeeAndMemo,
     });
 
     parse(originalFileName, parseOptions);
@@ -483,6 +486,7 @@ export function ImportTransactionsModal({
     fallbackMissingPayeeToMemo,
     importNotes,
     swapPayeeAndMemo,
+    qifSwapPayeeAndMemo,
     parse,
   ]);
 
@@ -530,7 +534,8 @@ export function ImportTransactionsModal({
       skipEndLines,
       fallbackMissingPayeeToMemo,
       importNotes,
-      swapPayeeAndMemo,
+      swapPayeeAndMemo:
+        fileType === 'qif' ? qifSwapPayeeAndMemo : swapPayeeAndMemo,
     });
 
     parse(res[0], parseOptions);
@@ -705,6 +710,12 @@ export function ImportTransactionsModal({
       savePrefs({
         [`flip-amount-${accountId}-${filetype}`]: String(flipAmount),
         [`import-notes-${accountId}-${filetype}`]: String(importNotes),
+      });
+    }
+
+    if (filetype === 'qif') {
+      savePrefs({
+        [`qif-swap-payee-memo-${accountId}`]: String(qifSwapPayeeAndMemo),
       });
     }
 
@@ -953,6 +964,18 @@ export function ImportTransactionsModal({
             </LabeledCheckbox>
           )}
 
+          {filetype === 'qif' && (
+            <LabeledCheckbox
+              id="form_qif_swap_payee_memo"
+              checked={qifSwapPayeeAndMemo}
+              onChange={() => {
+                setQifSwapPayeeAndMemo(state => !state);
+              }}
+            >
+              <Trans>Swap payee and memo</Trans>
+            </LabeledCheckbox>
+          )}
+
           {(isOfxFile(filetype) || isCamtFile(filetype)) && (
             <LabeledCheckbox
               id="form_dont_reconcile"
@@ -1188,6 +1211,10 @@ function getParseOptions(fileType: string, options: ParseFileOptions = {}) {
   if (isOfxFile(fileType)) {
     const { fallbackMissingPayeeToMemo, importNotes, swapPayeeAndMemo } = options;
     return { fallbackMissingPayeeToMemo, importNotes, swapPayeeAndMemo };
+  }
+  if (fileType === 'qif') {
+    const { importNotes, swapPayeeAndMemo } = options;
+    return { importNotes, swapPayeeAndMemo };
   }
   if (isCamtFile(fileType)) {
     const { importNotes } = options;
