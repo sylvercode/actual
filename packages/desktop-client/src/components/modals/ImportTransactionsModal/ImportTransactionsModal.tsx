@@ -406,6 +406,7 @@ export function ImportTransactionsModal({
 
       setError(null);
 
+      /// Do fine grained reporting between the old and new OFX importers.
       if (errors.length > 0) {
         setError({
           parsed: true,
@@ -959,7 +960,7 @@ export function ImportTransactionsModal({
                 <Trans>Use Memo as a fallback for empty Payees</Trans>
               </LabeledCheckbox>
               <LabeledCheckbox
-                id="form_swap_payee_memo"
+                id="form_ofx_swap_payee_memo"
                 checked={swapPayeeAndMemo}
                 onChange={() => {
                   setSwapPayeeAndMemo(state => !state);
